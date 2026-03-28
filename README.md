@@ -1,3 +1,13 @@
+---
+title: IncidentCommander
+emoji: 🚨
+colorFrom: blue
+colorTo: red
+sdk: docker
+app_file: app.py
+pinned: false
+---
+
 # IncidentCommander 🚨
 
 > **Meta Hackathon 2026** — OpenEnv Submission
