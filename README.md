@@ -1,10 +1,10 @@
 ---
 title: IncidentCommander
+emoji: 🚨
 colorFrom: blue
 colorTo: red
 sdk: docker
 app_port: 7860
-license: mit
 ---
 
 # IncidentCommander
@@ -32,7 +32,7 @@ This environment has been specifically engineered to pass all 3 phases of the Me
 * **Phase 3 (Human Review):**
   * **Real-world Utility**: Simulates authentic microservices telemetry (Kafka Queue metrics, API Gateway error rates, SLA thresholds).
 
-[![HF Space](https://img.shields.io/badge/🤗-HuggingFace%20Space-blue)](https://huggingface.co/spaces)
+[![HF Space](https://img.shields.io/badge/HuggingFace-Space-blue)](https://huggingface.co/spaces)
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-1.0.0-green)](https://openenv.ai)
 [![Python](https://img.shields.io/badge/Python-3.12-blue)](https://python.org)
 
@@ -210,20 +210,8 @@ Meta_Hackathon/
 ├── README.md
 ├── inference.py                    # Agent loop
 ├── incident_commander_env/
-│   ├── __init__.py
-│   ├── models.py                   # Pydantic types
-│   ├── services.py                 # Service specs & dependency graph
-│   ├── scenarios.py                # 4 task definitions
-│   ├── log_generator.py            # Realistic log generation
-│   ├── simulator.py                # Infrastructure engine
-│   ├── grader.py                   # Deterministic scoring
-│   └── environment.py              # Core env: reset/step/state/grade
 ├── server/
-│   └── app.py                      # FastAPI server
 └── tests/
-    ├── test_models.py
-    ├── test_environment.py
-    └── test_grader.py
 ```
 
 ---
