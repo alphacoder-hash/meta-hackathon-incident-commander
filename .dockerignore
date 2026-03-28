@@ -1,0 +1,16 @@
+.venv
+.git
+.github
+__pycache__
+*.pyc
+.pytest_cache
+push_err.log
+push_err.txt
+assets/
+.vscode/
+.agents/
+.agent/
+_agents/
+_agent/
+brain/
+tests/
