@@ -4,7 +4,9 @@ incident_commander_env — Public API.
 Usage:
     from incident_commander_env import IncidentCommanderEnv, IncidentAction, ActionType
 """
+# pyre-ignore[21]
 from .environment import IncidentCommanderEnv
+# pyre-ignore[21]
 from .models import (
     ActionType,
     Alert,
