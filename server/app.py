@@ -111,7 +111,7 @@ def info():
 
 
 @app.post("/reset", response_model=ResetResult)
-def reset(req: ResetRequest):
+def reset(req: ResetRequest = ResetRequest()):
     """
     Start a new episode.
 
