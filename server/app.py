@@ -183,15 +183,14 @@ app = gr.mount_gradio_app(app, demo, path="/ui")
 # Entry point
 # ---------------------------------------------------------------------------
 
-def main(host: str = "0.0.0.0", port: int = 7860):
+def main():
     import uvicorn
-    uvicorn.run(app, host=host, port=port)
-
-
-if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", type=str, default="0.0.0.0")
     parser.add_argument("--port", type=int, default=7860)
     args = parser.parse_args()
-    main(host=args.host, port=args.port)
+    uvicorn.run(app, host=args.host, port=args.port)
+
+if __name__ == '__main__':
+    main()
