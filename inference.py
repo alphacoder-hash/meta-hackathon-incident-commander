@@ -7,9 +7,9 @@ Mandatory environment variables:
   HF_TOKEN       Hugging Face / API key
 
 Mandatory stdout log format (one line each):
-  [START] task=<task_id> seed=<seed>
-  [STEP]  step=<n> action=<ACTION_TYPE> target=<service|None> reward=<float> done=<bool>
-  [END]   task=<task_id> score=<float> steps=<n>
+  [START] task=<task_name> env=<benchmark> model=<model_name>
+  [STEP]  step=<n> action=<action_str> reward=<0.00> done=<true|false> error=<msg|null>
+  [END]   success=<true|false> steps=<n> score=<score> rewards=<r1,r2,...,rn>
 
 Run:
   python inference.py [--env-url URL]
@@ -239,13 +239,12 @@ def run_task(client: OpenAI, env, task_id: str, seed: int = SEED) -> float:
 
     Emits mandatory structured log lines:
       [START] task=<task_id> seed=<seed>
-      [STEP]  step=<n> action=<type> target=<svc|None> reward=<r> done=<bool>
-      [END]   task=<task_id> score=<score> steps=<n>
     """
     # ---- [START] ----
-    print(f"[START] task={task_id} seed={seed}", flush=True)
+    print(f"[START] task={task_id} env=IncidentCommander model={MODEL_NAME}", flush=True)
 
     history: List[str] = []
+    rewards_history: List[float] = []
     reset_res = env.reset(task_id=task_id, seed=seed)
 
     # Observation lives under "observation" key in ResetResult dict
@@ -281,24 +280,31 @@ def run_task(client: OpenAI, env, task_id: str, seed: int = SEED) -> float:
 
         step_result  = env.step(action_dict)
         observation  = step_result["observation"]
-        reward       = step_result["reward"]
+        reward       = float(step_result["reward"])
         done         = step_result["done"]
+
+        action_str = f"{action_type}_{target}" if target else action_type
+        done_str = str(done).lower()
+        error_val = "null"
+        rewards_history.append(reward)
 
         # ---- [STEP] ----
         print(
-            f"[STEP] step={step_n} action={action_type} target={target} "
-            f"reward={reward:.4f} done={done}",
+            f"[STEP] step={step_n} action={action_str} reward={reward:.2f} done={done_str} error={error_val}",
             flush=True,
         )
 
-        history.append(f"Step {step_n}: {action_type} → {reward:+.2f}")
+        history.append(f"Step {step_n}: {action_type} -> {reward:+.2f}")
 
     grade_res = env.grade()
     score = grade_res["score"]
     steps_used = grade_res.get("step", step_n)
+    
+    success_val = str(score > 0.0).lower()
+    rewards_str = ",".join(f"{r:.2f}" for r in rewards_history)
 
     # ---- [END] ----
-    print(f"[END] task={task_id} score={score:.4f} steps={steps_used}", flush=True)
+    print(f"[END] success={success_val} steps={steps_used} score={score:.3f} rewards={rewards_str}", flush=True)
 
     return score
 
@@ -343,7 +349,7 @@ def main() -> None:
             print(f"[ERROR] Task {task_id} failed: {exc}", file=sys.stderr, flush=True)
             traceback.print_exc(file=sys.stderr)
             # Emit [END] with score=0 so evaluation can parse it
-            print(f"[END] task={task_id} score=0.0000 steps=0", flush=True)
+            print(f"[END] success=false steps=0 score=0.000 rewards=0.00", flush=True)
             scores[task_id] = 0.0
 
     # Summary
