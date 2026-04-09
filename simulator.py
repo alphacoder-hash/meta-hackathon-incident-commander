@@ -10,8 +10,8 @@ import random
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-from .services import ALL_SERVICES, DEPENDENCY_GRAPH, REVERSE_GRAPH, CASCADE_ORDER, ServiceSpec
-from .models import ServiceStatus
+from services import ALL_SERVICES, DEPENDENCY_GRAPH, REVERSE_GRAPH, CASCADE_ORDER, ServiceSpec
+from models import ServiceStatus
 
 
 # ---------------------------------------------------------------------------

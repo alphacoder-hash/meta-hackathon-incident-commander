@@ -1,66 +1,58 @@
+spec_version: 1
 name: incident_commander
-version: "1.0.0"
+version: 1.0.0
 description: >
-  A DevOps incident response environment. An AI agent triages alerts,
-  parses logs, traces dependencies, diagnoses root causes, and restores services
-  across an 8-service microservices architecture.
-author: "Meta Hackathon Submission"
-license: MIT
-
+  DevOps SRE incident response environment. An AI agent acts as a Site Reliability
+  Engineer triaging real production alerts, tracing cascading failures through an
+  8-service microservices graph, and applying targeted remediations to restore
+  system health. Tasks range from a single OOM crash (easy) to a silent memory
+  leak with chaos injection (hard).
+type: space
+runtime: fastapi
+app: server.app:app
+port: 7860
+tags:
+  - openenv
+  - devops
+  - sre
+  - incident-response
+  - evaluation
 tasks:
   - id: single_service_crash
-    description: "A single service has gone down. Find and fix it."
     difficulty: easy
     max_steps: 10
+    root_cause: cache_oom
+    description: "A cache OOM has crashed a single service. Diagnose and fix before customers notice."
   - id: cascading_failure
-    description: "A cascading failure is propagating across services."
     difficulty: medium
     max_steps: 15
+    root_cause: database_overload
+    description: "DB overload cascading through auth and api_gateway. Find and fix the root before the whole system falls."
   - id: bad_deployment
-    description: "A bad deployment broke something. Rollback before customers notice."
-    difficulty: medium_hard
+    difficulty: medium-hard
     max_steps: 15
+    root_cause: payment_bad_deploy
+    description: "A crash-looping payment deployment is losing revenue. Rollback before the queue drowns."
   - id: silent_degradation
-    description: "Latency is creeping up but nothing looks obviously broken."
     difficulty: hard
     max_steps: 20
-
+    root_cause: payment_memory_leak
+    description: "A slow memory leak is silently degrading the payment service. Find it before OOM hits. Chaos injection active."
+reward:
+  min: -10.0
+  max: 10.0
+  grade_min: 0.0
+  grade_max: 1.0
 action_space:
-  - CHECK_LOGS
-  - CHECK_METRICS
-  - TRACE_REQUEST
-  - RESTART_SERVICE
-  - SCALE_UP
-  - ROLLBACK
-  - FAILOVER_DB
-  - CLEAR_CACHE
-  - DIAGNOSE
-  - ESCALATE
-
-services:
-  - api_gateway
-  - auth
-  - database
-  - cache
-  - queue
-  - payment
-  - notification
-  - cdn
-
-observation_fields:
-  - alerts
-  - service_statuses
-  - logs
-  - step
-  - max_steps
-  - incident_id
-
-reward_range: [-10.0, 10.0]
-episode_reward_range: [0.0, 1.0]
-
-runtime:
-  language: python
-  version: "3.12"
-  server_port: 7860
-  max_memory_gb: 8
-  max_vcpus: 2
+  type: discrete
+  actions:
+    - CHECK_LOGS
+    - CHECK_METRICS
+    - TRACE_REQUEST
+    - RESTART_SERVICE
+    - SCALE_UP
+    - ROLLBACK
+    - FAILOVER_DB
+    - CLEAR_CACHE
+    - DIAGNOSE
+    - ESCALATE

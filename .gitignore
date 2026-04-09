@@ -1,9 +1,13 @@
-__pycache__/
-*.py[cod]
-*$py.class
 .venv/
 venv/
 ENV/
 env/
 .env
 .pytest_cache/
+__pycache__/
+*.py[cod]
+*$py.class
+trace.log
+push_err.log
+push_err.txt
+*.log

@@ -7,15 +7,9 @@ Implements:
   env.state()              → IncidentState
   env.grade()              → float (0.0–1.0)
 """
-from __future__ import annotations
-
-import random
-import uuid
-from typing import Dict, List, Optional
-
-from .grader import RewardSignals, grade as compute_grade
-from .log_generator import generate_logs
-from .models import (
+from grader import RewardSignals, grade as compute_grade
+from log_generator import generate_logs
+from models import (
     ActionType,
     Alert,
     IncidentAction,
@@ -24,8 +18,11 @@ from .models import (
     ResetResult,
     StepResult,
 )
-from .scenarios import SCENARIOS, Scenario
-from .simulator import InfrastructureSimulator
+from scenarios import SCENARIOS, Scenario
+from simulator import InfrastructureSimulator
+import random
+import uuid
+from typing import Dict, List, Optional, Any
 
 
 class IncidentCommanderEnv:
@@ -63,12 +60,13 @@ class IncidentCommanderEnv:
 
         # Timeline (shown to agent)
         self._timeline: List[str] = []
+        self._episode_id: str = str(uuid.uuid4())
 
     # ------------------------------------------------------------------
     # reset()
     # ------------------------------------------------------------------
 
-    def reset(self, task_id: str = "single_service_crash", seed: int = 42) -> ResetResult:
+    def reset(self, task_id: str = "single_service_crash", seed: int = 42, episode_id: Optional[str] = None) -> ResetResult:
         if task_id not in SCENARIOS:
             raise ValueError(f"Unknown task_id '{task_id}'. Available: {list(SCENARIOS.keys())}")
 
@@ -97,9 +95,11 @@ class IncidentCommanderEnv:
             chaos=self._scenario.chaos,
         )
 
-        observation = self._build_observation()
+        self._episode_id = episode_id or f"INC-{uuid.uuid4().hex[:8].upper()}"
+
+        obs = self._build_observation()
         return ResetResult(
-            observation=observation,
+            observation=obs,
             task_id=task_id,
             incident_id=self._incident_id,
         )
@@ -160,9 +160,8 @@ class IncidentCommanderEnv:
         # Episode done: all resolved OR max_steps reached OR action forced done (ESCALATE)
         self._done = self._done or self._sim.is_resolved() or self._step >= self._scenario.max_steps
 
-        observation = self._build_observation()
         return StepResult(
-            observation=observation,
+            observation=self._build_observation(),
             reward=reward,
             done=self._done,
             info=info,
@@ -286,11 +285,8 @@ class IncidentCommanderEnv:
 
         return reward
 
-    # ------------------------------------------------------------------
-    # state() / grade()
-    # ------------------------------------------------------------------
-
     def state(self) -> IncidentState:
+        """Return full ground-truth state (not seen by the agent)."""
         return IncidentState(
             incident_id=self._incident_id,
             task_id=self._scenario.task_id if self._scenario else "",

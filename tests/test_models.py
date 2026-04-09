@@ -4,7 +4,7 @@ test_models.py — Unit tests for Pydantic models.
 import pytest
 from pydantic import ValidationError
 
-from incident_commander_env.models import (
+from models import (
     ActionType,
     IncidentAction,
     IncidentObservation,

@@ -3,8 +3,8 @@ test_grader.py — Unit tests for the deterministic grader.
 """
 import pytest
 
-from incident_commander_env.grader import grade, RewardSignals
-from incident_commander_env.models import IncidentState
+from grader import grade, RewardSignals
+from models import IncidentState
 
 
 def make_state(**overrides) -> IncidentState:
