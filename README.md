@@ -17,7 +17,15 @@ tags:
 
 # IncidentCommander 🚨
 
-**IncidentCommander** is a production-grade **OpenEnv** environment designed to evaluate AI agents in the role of a Site Reliability Engineer (SRE). Agents must triage complex production incidents across an 8-service microservices architecture by analyzing live incident reports and providing prioritized remediation plans.
+**IncidentCommander** is a production-grade **OpenEnv** environment designed to evaluate AI agents in the role of a Site Reliability Engineer (SRE). Agents must triage complex production incidents across an 8-service microservices architecture by analyzing live incident reports and providing prioritized remediation plans. [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+
+---
+
+## 🔗 Live Demonstration
+
+- **Interactive Dashboard**: [https://vaibhav0714-incidentcommander.hf.space/](https://vaibhav0714-incidentcommander.hf.space/)
+- **Hugging Face Space**: [https://huggingface.co/spaces/vaibhav0714/IncidentCommander](https://huggingface.co/spaces/vaibhav0714/IncidentCommander)
+- **GitHub Repository**: [https://github.com/alphacoder-hash/meta-hackathon-incident-commander](https://github.com/alphacoder-hash/meta-hackathon-incident-commander)
 
 ---
 
@@ -54,34 +62,53 @@ Failures propagate topographically, requiring agents to reason about causal chai
 
 ## 🚀 Quick Start
 
-### 1. Run the Dashboard (Interactive)
-The environment includes a premium SRE Dashboard for manual triage and testing.
+### Local (Python)
 ```bash
-# Using Python
-pip install -r requirements.txt
-uvicorn server.app:app --host 0.0.0.0 --port 7860
+git clone https://github.com/alphacoder-hash/meta-hackathon-incident-commander.git
+cd incident-commander
 
-# Navigate to http://localhost:7860/ui
+pip install -r requirements.txt
+
+# Run the server
+uvicorn server.app:app --host 0.0.0.0 --port 7860
+# Open http://localhost:7860/ui for the interactive dashboard
 ```
 
-### 2. Docker Deployment
+### Local (Docker)
 ```bash
 docker build -t incident-commander .
-docker run -p 7860:7860 incident-commander
+docker run -p 7860:7860 \
+  -e HF_TOKEN=<your-token> \
+  -e MODEL_NAME=Qwen/Qwen2.5-72B-Instruct \
+  -e API_BASE_URL=https://router.huggingface.co/v1 \
+  incident-commander
 ```
 
-### 3. API Usage (OpenEnv Client)
+### Run the Baseline Inference Script
+```bash
+export HF_TOKEN=hf_xxx
+export MODEL_NAME=Qwen/Qwen2.5-72B-Instruct
+export API_BASE_URL=https://router.huggingface.co/v1
+
+# Local environment
+python inference.py
+
+# Against a deployed HF Space
+python inference.py --env-url https://vaibhav0714-incidentcommander.hf.space
+```
+
+### API Usage (OpenEnv Client)
 ```python
 import httpx
 
 # Reset the environment
-resp = httpx.post("http://localhost:7860/reset", json={"task_id": "cascading_failure"})
+resp = httpx.post("https://vaibhav0714-incidentcommander.hf.space/reset", json={"task_id": "cascading_failure"})
 obs = resp.json()["observation"]
 print(obs["incident_report"])
 
 # Submit analysis
-action = {"response": "The database is overloaded due to a slow query in the auth service. RECOMMENDATION: Scale up database."}
-resp = httpx.post("http://localhost:7860/step", json=action)
+action = {"response": "The database is overloaded. RECOMMENDATION: Scale up database."}
+resp = httpx.post("https://vaibhav0714-incidentcommander.hf.space/step", json=action)
 print(f"Score: {resp.json()['reward']}")
 ```
 
