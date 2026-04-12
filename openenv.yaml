@@ -20,39 +20,17 @@ tags:
 tasks:
   - id: single_service_crash
     difficulty: easy
-    max_steps: 10
-    root_cause: cache_oom
     description: "A cache OOM has crashed a single service. Diagnose and fix before customers notice."
+    grader: server.graders.grade_easy
   - id: cascading_failure
     difficulty: medium
-    max_steps: 15
-    root_cause: database_overload
     description: "DB overload cascading through auth and api_gateway. Find and fix the root before the whole system falls."
+    grader: server.graders.grade_medium
   - id: bad_deployment
     difficulty: medium-hard
-    max_steps: 15
-    root_cause: payment_bad_deploy
     description: "A crash-looping payment deployment is losing revenue. Rollback before the queue drowns."
+    grader: server.graders.grade_medium
   - id: silent_degradation
     difficulty: hard
-    max_steps: 20
-    root_cause: payment_memory_leak
     description: "A slow memory leak is silently degrading the payment service. Find it before OOM hits. Chaos injection active."
-reward:
-  min: -10.0
-  max: 10.0
-  grade_min: 0.0
-  grade_max: 1.0
-action_space:
-  type: discrete
-  actions:
-    - CHECK_LOGS
-    - CHECK_METRICS
-    - TRACE_REQUEST
-    - RESTART_SERVICE
-    - SCALE_UP
-    - ROLLBACK
-    - FAILOVER_DB
-    - CLEAR_CACHE
-    - DIAGNOSE
-    - ESCALATE
+    grader: server.graders.grade_hard

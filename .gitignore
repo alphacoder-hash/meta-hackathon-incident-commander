@@ -11,3 +11,5 @@ trace.log
 push_err.log
 push_err.txt
 *.log
+Incident-Triage-Environment/
+reference_envs/

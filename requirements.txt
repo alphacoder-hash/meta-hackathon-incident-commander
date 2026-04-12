@@ -1,11 +1,19 @@
-fastapi==0.111.0
-uvicorn[standard]==0.30.1
-pydantic==2.7.1
-openai==1.30.1
-huggingface_hub==0.23.4
-pytest==8.2.0
-httpx==0.27.0
-python-multipart==0.0.9
-gradio==4.31.5
-pyyaml==6.0.2
-requests==2.32.3
+# IncidentCommander OpenEnv — Python dependencies
+# Used as fallback when uv is not available.
+# Primary dependency management is via pyproject.toml + uv sync.
+
+# Core OpenEnv runtime (provides FastAPI server + HTTP client types + WebSocket)
+openenv-core[core]>=0.2.2
+
+# LLM inference
+openai>=1.0.0
+
+# HTTP client
+httpx>=0.27.0
+requests>=2.32.3
+
+# YAML parsing
+pyyaml>=6.0.2
+
+# Dev / testing
+pytest>=8.0.0
