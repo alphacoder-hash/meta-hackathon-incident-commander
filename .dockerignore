@@ -13,3 +13,5 @@ assets/
 .vscode/
 .pyre_configuration
 reference_envs/
+Incident-Triage-Environment/
+tests/
