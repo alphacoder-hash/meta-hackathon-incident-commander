@@ -39,6 +39,8 @@ except Exception as e:  # pragma: no cover
 
 from models import IncidentCommanderAction, IncidentCommanderObservation
 from server.environment import IncidentCommanderEnvironment
+from server.gradio_ui import build_ui
+import gradio as gr
 
 # ---------------------------------------------------------------------------
 # Create the OpenEnv-compatible FastAPI app
@@ -51,6 +53,13 @@ app = create_app(
     env_name="incident_commander",
     max_concurrent_envs=25,
 )
+
+# ---------------------------------------------------------------------------
+# Mount the Gradio UI Dashboard
+# This resolves 404 errors on HF Spaces and provides a premium demo interface.
+# ---------------------------------------------------------------------------
+
+app = gr.mount_gradio_app(app, build_ui(), path="/")
 
 
 # ---------------------------------------------------------------------------

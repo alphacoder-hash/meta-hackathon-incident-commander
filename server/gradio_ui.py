@@ -1,115 +1,122 @@
 import gradio as gr
 import requests
 import json
+import os
 from typing import Dict, List, Any
 
 class IncidentCommanderUI:
     def __init__(self, api_url: str = "http://localhost:7860"):
+        # Internally on HF, the app talks to itself on localhost
         self.api_url = api_url
 
     def _reset(self, task_id: str):
         try:
+            # Match the final server/environment.py ResetResult structure
             resp = requests.post(f"{self.api_url}/reset", json={"task_id": task_id})
             resp.raise_for_status()
             data = resp.json()
-            return self._format_output(data["observation"])
-        except Exception as e:
-            return f"Error: {str(e)}"
-
-    def _step(self, action_type: str, target: str, cause: str):
-        try:
-            payload = {"action_type": action_type}
-            if target: payload["target_service"] = target
-            if cause: payload["root_cause_id"] = cause
             
+            # Reset results often wrap the observation
+            obs = data.get("observation", data)
+            return self._format_output(obs)
+        except Exception as e:
+            return f"### ⚠️ Error\nFailed to reset environment: {str(e)}"
+
+    def _step(self, response: str):
+        try:
+            if not response or len(response.strip()) < 5:
+                return "### ⚠️ Warning\nPlease provide a more detailed analysis before submitting."
+                
+            # Send free-text response matching the finale architecture
+            payload = {"response": response}
             resp = requests.post(f"{self.api_url}/step", json=payload)
             resp.raise_for_status()
-            data = resp.json()
-            return self._format_output(data["observation"])
+            obs = resp.json()
+            
+            return self._format_output(obs)
         except Exception as e:
-            return f"Error: {str(e)}"
-
-    def _grade(self):
-        try:
-            resp = requests.get(f"{self.api_url}/grade")
-            resp.raise_for_status()
-            return f"## Final Score: {resp.json()['score']:.4f}\n\n```json\n" + json.dumps(resp.json(), indent=2) + "\n```"
-        except Exception as e:
-            return f"Error: {str(e)}"
+            return f"### ⚠️ Error\nAction submission failed: {str(e)}"
 
     def _format_output(self, obs: Dict):
-        # Service status table
-        status_md = "### 🖥️ Service Status\n| Service | Healthy | Latency | Error Rate | CPU | Mem |\n|---|---|---|---|---|---|\n"
-        for s in obs["service_statuses"]:
-            h = "✅" if s["healthy"] else "❌"
-            status_md += f"| {s['name']} | {h} | {s['latency_ms']}ms | {s['error_rate']:.1%} | {s['cpu_pct']}% | {s['memory_pct']}% |\n"
+        """Format the text-based observation for a premium layout."""
+        # Main report with nice formatting
+        report = obs.get("incident_report", "No report available.")
         
-        # Alerts
-        alerts_md = "### 🚨 Active Alerts\n"
-        if not obs["alerts"]:
-            alerts_md += "_None_\n"
-        for a in obs["alerts"]:
-            sev = "🔴" if a["severity"] == "critical" else "🟡"
-            alerts_md += f"- {sev} **{a['service']}**: {a['message']}\n"
+        # Meta info
+        task_id = obs.get("task_id", "N/A").upper()
+        step = obs.get("step_number", 0)
+        max_steps = obs.get("max_steps", 3)
+        total_reward = obs.get("total_reward", 0.0)
+        feedback = obs.get("feedback", "")
+        done = obs.get("done", False)
 
-        # Logs
-        logs_md = "### 📝 Recent Logs\n```text\n" + "\n".join(obs["logs"][-10:]) + "\n```"
+        status_color = "🟢 COMPLETE" if done else "🔴 ACTIVE"
         
-        # Timeline
-        timeline_md = "### ⏳ Incident Timeline\n" + "\n".join([f"- {t}" for t in obs["timeline"][-5:]])
+        md = f"## {status_color} | Tier: {task_id} | Progress: {step}/{max_steps}\n"
+        md += f"**Current Score:** `{total_reward:.2f}`\n\n"
+        
+        if feedback:
+            md += f"> [!NOTE]\n> **System Feedback:** {feedback}\n\n"
 
-        # Header info
-        header = f"## Incident: {obs['incident_id']} | Task: {obs['task_id']} | Step: {obs['step']}/{obs['max_steps']}\n"
-        header += f"**Reward**: {obs.get('total_reward', 0):.2f}\n"
+        md += "---\n### 📄 Incident Report (Live Context)\n"
+        md += f"{report}\n\n"
+        
+        if done:
+            md += "---\n## 🏆 Triage Complete\n"
+            md += f"**Final Session Score:** `{total_reward:.2f}`\n"
+            md += "Click **Reset** to try another scenario or a higher difficulty tier."
 
-        return f"{header}\n\n{status_md}\n\n{alerts_md}\n\n{logs_md}\n\n{timeline_md}"
+        return md
 
 def build_ui(api_url: str = "http://localhost:7860"):
     ui_engine = IncidentCommanderUI(api_url)
     
-    with gr.Blocks(title="IncidentCommander Dashboard", theme=gr.themes.Soft()) as demo:
-        gr.Markdown("# 🚨 IncidentCommander: DevOps OpenEnv Environment")
+    # Modern "Soft" theme with custom accent components
+    with gr.Blocks(title="IncidentCommander Dashboard", theme=gr.themes.Soft(primary_hue="red", secondary_hue="slate")) as demo:
+        gr.Markdown("""
+        # 🚨 IncidentCommander: SRE Intelligence Dashboard
+        *State-of-the-art Agentic Incident Response Environment*
+        """)
         
         with gr.Row():
             with gr.Column(scale=1):
+                gr.Markdown("### 🕹️ Operation Control")
                 task_dropdown = gr.Dropdown(
-                    choices=["single_service_crash", "cascading_failure", "bad_deployment", "silent_degradation"],
-                    value="single_service_crash",
-                    label="Select Scenario"
+                    choices=[("Easy (Single Crash)", "easy"), 
+                             ("Medium (Red Herring)", "medium"), 
+                             ("Hard (Cascading P0)", "hard")],
+                    value="easy",
+                    label="Target Difficulty Tier"
                 )
-                reset_btn = gr.Button("🚀 Reset / Start Episode", variant="primary")
+                reset_btn = gr.Button("🚀 RESET / INITIALIZE INCIDENT", variant="primary")
                 
                 gr.Markdown("---")
-                gr.Markdown("### 🛠️ Step Action")
-                action_type = gr.Dropdown(
-                    choices=["CHECK_LOGS", "CHECK_METRICS", "TRACE_REQUEST", "RESTART_SERVICE", "SCALE_UP", "ROLLBACK", "FAILOVER_DB", "CLEAR_CACHE", "DIAGNOSE", "ESCALATE"],
-                    value="CHECK_LOGS",
-                    label="Action Type"
+                gr.Markdown("### 🧠 Incident Response Analysis")
+                response_input = gr.Textbox(
+                    lines=10, 
+                    placeholder="Enter your root cause analysis, identified red herrings, and prioritized remediation plan here...",
+                    label="Response / Analysis Report"
                 )
-                target_svc = gr.Dropdown(
-                    choices=["api_gateway", "auth", "database", "cache", "queue", "payment", "notification", "cdn"],
-                    label="Target Service (Optional)"
-                )
-                root_cause = gr.Dropdown(
-                    choices=["cache_oom", "database_overload", "payment_bad_deploy", "payment_memory_leak"],
-                    label="Root Cause ID (For DIAGNOSE only)"
-                )
-                step_btn = gr.Button("⚡ Submit Action", variant="secondary")
+                submit_btn = gr.Button("⚡ SUBMIT FOR GRADING", variant="secondary")
                 
-                gr.Markdown("---")
-                grade_btn = gr.Button("📊 Get Final Grade")
-                grade_output = gr.Markdown()
+                gr.Markdown("""
+                ---
+                ### ℹ️ Grading Criteria
+                - **Easy**: ID failing service & root cause.
+                - **Medium**: Explicitly flag 'Red Herring' signals.
+                - **Hard**: Prioritize actions (FIRST, SECOND, THIRD).
+                """)
 
             with gr.Column(scale=2):
-                main_output = gr.Markdown("### Welcome, SRE. Reset to start the simulation.")
+                main_output = gr.Markdown("### [STATUS] Awaiting initialization...\nSelect a difficulty tier and click 'Reset' to start triaging.")
 
-        # Event handlers
+        # Event Handlers
         reset_btn.click(ui_engine._reset, inputs=[task_dropdown], outputs=[main_output])
-        step_btn.click(ui_engine._step, inputs=[action_type, target_svc, root_cause], outputs=[main_output])
-        grade_btn.click(ui_engine._grade, outputs=[grade_output])
+        submit_btn.click(ui_engine._step, inputs=[response_input], outputs=[main_output])
 
     return demo
 
 if __name__ == "__main__":
+    # Local fallback for testing
     demo = build_ui()
-    demo.launch(server_name="0.0.0.0", server_port=7861)
+    demo.launch(server_name="0.0.0.0", server_port=7860)
