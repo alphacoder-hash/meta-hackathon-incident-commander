@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "openenv-incident_commander"
+name = "incident_commander"
 version = "1.0.0"
 description = "IncidentCommander — DevOps SRE incident response environment for OpenEnv"
 requires-python = ">=3.10"
@@ -14,7 +14,7 @@ dependencies = [
     "openai>=1.0.0",
     "httpx>=0.27.0",
     "requests>=2.32.3",
-    # Optional Gradio UI (removed from main server but kept for local testing)
+    # Dashboard dependencies
     "gradio>=4.31.5",
     "pyyaml>=6.0.2",
 ]
