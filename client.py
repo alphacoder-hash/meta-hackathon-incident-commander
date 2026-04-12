@@ -11,7 +11,8 @@ Usage:
     with IncidentCommanderClient(base_url="https://your-space.hf.space").sync() as env:
         result = env.reset()
         print(result.observation.incident_report)
-        result = env.step(IncidentCommanderAction(action_type="CHECK_LOGS", target_service="cache"))
+        # Use the new response-based action
+        result = env.step(IncidentCommanderAction(response="The cache service is OOM. Fixed."))
         print(result.reward)
 """
 
@@ -44,12 +45,7 @@ try:
 
         def _step_payload(self, action: IncidentCommanderAction) -> Dict:
             """Convert action to JSON payload."""
-            payload: Dict[str, Any] = {"action_type": action.action_type}
-            if action.target_service:
-                payload["target_service"] = action.target_service
-            if action.root_cause_id:
-                payload["root_cause_id"] = action.root_cause_id
-            return payload
+            return {"response": action.response}
 
         def _parse_result(self, payload: Dict) -> StepResult[IncidentCommanderObservation]:
             """Parse server response into StepResult."""
