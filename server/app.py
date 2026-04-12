@@ -37,6 +37,7 @@ except Exception as e:  # pragma: no cover
         "or:\n    pip install openenv-core[core]>=0.2.2"
     ) from e
 
+from fastapi.responses import RedirectResponse
 from models import IncidentCommanderAction, IncidentCommanderObservation
 from server.environment import IncidentCommanderEnvironment
 from server.gradio_ui import build_ui
@@ -55,11 +56,16 @@ app = create_app(
 )
 
 # ---------------------------------------------------------------------------
-# Mount the Gradio UI Dashboard
-# This resolves 404 errors on HF Spaces and provides a premium demo interface.
+# Root Redirect and Dashboard Mounting
 # ---------------------------------------------------------------------------
 
-app = gr.mount_gradio_app(app, build_ui(), path="/")
+@app.get("/", include_in_schema=False)
+async def root_redirect():
+    """Redirect root to the interactive dashboard."""
+    return RedirectResponse(url="/ui")
+
+# Mount Gradio at /ui to avoid conflicts with API root routes
+app = gr.mount_gradio_app(app, build_ui(), path="/ui")
 
 
 # ---------------------------------------------------------------------------
@@ -134,7 +140,12 @@ async def list_tasks():
 @app.get("/health", tags=["Health"])
 async def health():
     """Health check — returns 200 when the server is up."""
-    return {"status": "ok", "environment": "incident_commander", "version": "1.0.0"}
+    return {
+        "status": "ok", 
+        "environment": "incident_commander", 
+        "version": "1.0.0",
+        "ui_path": "/ui"
+    }
 
 
 # ---------------------------------------------------------------------------

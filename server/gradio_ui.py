@@ -5,9 +5,10 @@ import os
 from typing import Dict, List, Any
 
 class IncidentCommanderUI:
-    def __init__(self, api_url: str = "http://localhost:7860"):
-        # Internally on HF, the app talks to itself on localhost
-        self.api_url = api_url
+    def __init__(self, api_url: str = None):
+        # Auto-detect API URL. Internally on HF it talks to localhost:7860.
+        # Fallback to current origin if in browser context.
+        self.api_url = api_url or os.getenv("API_URL", "http://localhost:7860").rstrip("/")
 
     def _reset(self, task_id: str):
         try:
