@@ -29,9 +29,8 @@ dev = [
 # Server entry point — enables running via: uv run --project . server
 server = "server.app:main"
 
-[tool.setuptools]
-include-package-data = true
-packages = ["server"]
+[tool.uv]
+package = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
